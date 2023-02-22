@@ -21,8 +21,16 @@ app.use(cors());
 
 // GET ALL endpoint
 app.get('/posts', async (req, res) => {
+  const page = Number(req.query.page) ?? 1;
+  const limit = Number(req.query.limit) ?? 10;
+
+  console.log(req);
   try {
-    const items = await Item.find();
+    const items = await Item.find()
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+    console.table({page, limit, length: items.length ?? 0});
     res.json(items);
   } catch (err) {
     console.error(err);
