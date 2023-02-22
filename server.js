@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const cors = require('cors')
+const cors = require('cors');
 
 const { uuid } = require('uuidv4');
 const app = express();
@@ -17,9 +17,9 @@ const Item = mongoose.model('Item', {
 
 // Middleware
 app.use(bodyParser.json());
-app.use(cors())
+app.use(cors());
 
-// GET endpoint
+// GET ALL endpoint
 app.get('/posts', async (req, res) => {
   try {
     const items = await Item.find();
@@ -30,7 +30,7 @@ app.get('/posts', async (req, res) => {
   }
 });
 
-// GET endpoint
+// GET ONE endpoint
 app.get('/posts/:id', async (req, res) => {
     const id = req.params.id;
     try {
@@ -76,7 +76,6 @@ mongoose.set('strictQuery', true);
 mongoose.connect(url, { useUnifiedTopology: true, useNewUrlParser: true })
   .then(() => {
     console.log('Connected to MongoDB');
-    // Start server
     const port = process.env.PORT || 4000;
     app.listen(port, () => {
       console.log(`Server listening on port ${port}`);
