@@ -42,6 +42,7 @@ app.get('/posts/:id', async (req, res) => {
     }
 });
 
+// ADD endpoint
 app.post('/posts', async (req, res) => {
     try {
         const { title, body } = req.body;
@@ -57,8 +58,8 @@ app.post('/posts', async (req, res) => {
 app.delete('/posts/:id', async (req, res) => {
   const id = req.params.id;
   try {
-    console.log(id);
     const result = await Item.deleteOne({ id });
+    console.log(result);
     if (result.deletedCount === 1) {
       res.sendStatus(204);
     } else {
