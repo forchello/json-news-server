@@ -1,33 +1,84 @@
-const jsonServer = require('json-server');
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
-const server = jsonServer.create();
+const { uuid } = require('uuidv4');
+const app = express();
+require('dotenv').config();
 
-const router = jsonServer.router('db.json');
+const url = process.env.MONGO_URL;
 
-const middlewares = jsonServer.defaults();
-
-server.use(middlewares);
-
-server.delete('/:resource/:id', (req, res) => {
-    const resource = req.params.resource;
-    const id = Number(req.params.id);
-
-    const data = router.db.get(resource).value();
-    const index = data.findIndex((item) => item.id === id);
-
-    if (index === -1) {
-        return res.status(404).json({ message: 'Element not found' });
-    }
-
-    const result = data.filter((item) => item.id !== id);
-    router.db.set(resource, result).write();
-
-    res.status(200).json({ message: 'success' });
+const Item = mongoose.model('Item', {
+  id: String,
+  title: String,
+  body: String,
 });
 
-server.use(router)
-server.listen(process.env.PORT || 8000, () => {
-    console.log('JSON Server is running')
-})
+// Middleware
+app.use(bodyParser.json());
 
-module.exports = server;
+// GET endpoint
+app.get('/posts', async (req, res) => {
+  try {
+    const items = await Item.find();
+    res.json(items);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+// GET endpoint
+app.get('/posts/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+      const result = await Item.findOne({ id });
+      res.json(result ?? {});
+    } catch (err) {
+      console.error(err);
+      res.sendStatus(500);
+    }
+});
+
+app.post('/posts', async (req, res) => {
+    try {
+        const { title, body } = req.body;
+        const item = await Item.create({id: uuid(), title, body});
+        res.status(200).send(item);
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(400);
+    }
+});
+
+// DELETE endpoint
+app.delete('/posts/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    console.log(id);
+    const result = await Item.deleteOne({ id });
+    if (result.deletedCount === 1) {
+      res.sendStatus(204);
+    } else {
+      res.sendStatus(404);
+    }
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+// Connect to MongoDB
+mongoose.set('strictQuery', true);
+mongoose.connect(url, { useUnifiedTopology: true, useNewUrlParser: true })
+  .then(() => {
+    console.log('Connected to MongoDB');
+    // Start server
+    const port = process.env.PORT || 4000;
+    app.listen(port, () => {
+      console.log(`Server listening on port ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error(err);
+  });
