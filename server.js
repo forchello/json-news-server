@@ -1,28 +1,34 @@
-const jsonServer = require('json-server')
-const clone = require('clone')
-const data = require('./db.json')
+const jsonServer = require('json-server');
 
-const isProductionEnv = process.env.NODE_ENV === 'production';
-const server = jsonServer.create()
+const server = jsonServer.create();
 
-// For mocking the POST request, POST request won't make any changes to the DB in production environment
-const router = jsonServer.router(isProductionEnv ? clone(data) : 'db.json', {
-    _isFake: isProductionEnv
-})
-const middlewares = jsonServer.defaults()
+const router = jsonServer.router('db.json');
+const middlewares = jsonServer.defaults();
 
-server.use(middlewares)
+server.use(middlewares);
 
-server.use((req, res, next) => {
-    if (req.path !== '/')
-        router.db.setState(clone(req));
-    next()
-})
+server.delete('/:resource/:id', (req, res) => {
+    const resource = req.params.resource;
+    const id = Number(req.params.id);
+
+    // Найти объект в массиве, у которого значение свойства 'id' соответствует идентификатору 'id'
+    const data = router.db.get(resource).value();
+    const index = data.findIndex((item) => item.id === id);
+
+    if (index === -1) {
+        return res.status(404).json({ message: 'Element not found' });
+    }
+
+    // Удалить найденный объект из массива
+    const result = data.filter((item) => item.id !== id);
+    router.db.set(resource, result).write();
+
+    res.status(200).json({ message: 'success' });
+});
 
 server.use(router)
 server.listen(process.env.PORT || 8000, () => {
     console.log('JSON Server is running')
 })
 
-// Export the Server API
-module.exports = server
+module.exports = server;
