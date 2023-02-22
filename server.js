@@ -1,7 +1,5 @@
 const jsonServer = require('json-server');
-const { createBridge } = require('@vercel/node-bridge');
-
-const bridge = createBridge();
+const bridge = require('@vercel/node-bridge');
 
 const server = jsonServer.create();
 
@@ -15,7 +13,7 @@ server.delete('/:resource/:id', (req, res) => {
         const resource = req.params.resource;
         const id = Number(req.params.id);
 
-        const data = bridge.fs.readFileSync('db.json', 'utf8');
+        const data = bridge.fs.readFileSync('/vercel/path0/db.json', 'utf8');
         const parsedData = JSON.parse(data);
         const index = parsedData[resource].findIndex((item) => item.id === id);
 
@@ -26,7 +24,7 @@ server.delete('/:resource/:id', (req, res) => {
         const result = parsedData[resource].filter((item) => item.id !== id);
         parsedData[resource] = result;
 
-        bridge.fs.writeFileSync('db.json', JSON.stringify(parsedData));
+        bridge.fs.writeFileSync('/vercel/path0/db.json', JSON.stringify(parsedData));
         res.status(200).json({ message: 'success' });
     } catch (error) {
         return res.status(400).json({ error });
