@@ -1,9 +1,12 @@
 const jsonServer = require('json-server');
-const bridge = require('@vercel/node-bridge');
+const data = require('./db.json');
 
 const server = jsonServer.create();
 
-const router = jsonServer.router('db.json');
+const router = jsonServer.router(isProductionEnv ? clone(data) : 'db.json', {
+    _isFake: isProductionEnv
+});
+
 const middlewares = jsonServer.defaults();
 
 server.use(middlewares);
@@ -12,18 +15,16 @@ server.delete('/:resource/:id', (req, res) => {
     const resource = req.params.resource;
     const id = Number(req.params.id);
 
-    const data = bridge.readFileSync('/vercel/path0/db.json', 'utf8');
-    const parsedData = JSON.parse(data);
-    const index = parsedData[resource].findIndex((item) => item.id === id);
+    const data = router.db.get(resource).value();
+    const index = data.findIndex((item) => item.id === id);
 
     if (index === -1) {
         return res.status(404).json({ message: 'Element not found' });
     }
 
-    const result = parsedData[resource].filter((item) => item.id !== id);
-    parsedData[resource] = result;
+    const result = data.filter((item) => item.id !== id);
+    router.db.set(resource, result).write();
 
-    bridge.writeFileSync('/vercel/path0/db.json', JSON.stringify(parsedData));
     res.status(200).json({ message: 'success' });
 });
 

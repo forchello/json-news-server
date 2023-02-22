@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@vercel/node-bridge": "^3.1.11",
     "json-server": "^0.17.1"
   }
 }
