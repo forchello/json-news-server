@@ -15,7 +15,7 @@ server.use(middlewares)
 
 server.use((req, res, next) => {
     if (req.path !== '/')
-        router.db.setState(clone(data))
+        router.db.setState(clone(req));
     next()
 })
 
