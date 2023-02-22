@@ -3,6 +3,7 @@ const data = require('./db.json');
 
 const server = jsonServer.create();
 
+const isProductionEnv = process.env.NODE_ENV === 'production';
 const router = jsonServer.router(isProductionEnv ? clone(data) : 'db.json', {
     _isFake: isProductionEnv
 });
