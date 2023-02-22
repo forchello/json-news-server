@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const cors = require('cors')
 
 const { uuid } = require('uuidv4');
 const app = express();
@@ -16,6 +17,7 @@ const Item = mongoose.model('Item', {
 
 // Middleware
 app.use(bodyParser.json());
+app.use(cors())
 
 // GET endpoint
 app.get('/posts', async (req, res) => {
